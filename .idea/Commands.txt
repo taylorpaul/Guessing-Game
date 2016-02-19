@@ -1,0 +1,5 @@
+cd "PycharmProjects\Networking Game"
+python Server.py localhost 1000
+
+cd "PycharmProjects\Networking Game"
+python Client.py localhost 1000
