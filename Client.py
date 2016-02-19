@@ -16,6 +16,32 @@
 import socket
 import sys
 
+print(" _      ________   _________  __  _______                   ")
+print("| | /| / / __/ /  / ___/ __ \/  |/  / __/                   ")
+print("| |/ |/ / _// /__/ /__/ /_/ / /|_/ / _/                     ")
+print("|__/|__/___/____/\___/\____/_/  /_/___/                     ")
+print("                                                            ")
+print(" __________                                                 ")
+print("/_  __/ __ \                                                ")
+print(" / / / /_/ /                                                ")
+print("/_/  \____/                                                 ")
+print("                                                            ")
+print("  _______  ___________________  _______                     ")
+print(" / ___/ / / / __/ __/ __/  _/ |/ / ___/                     ")
+print("/ (_ / /_/ / _/_\ \_\ \_/ //    / (_ /                      ")
+print("\___/\____/___/___/___/___/_/|_/\___/                       ")
+print("                                                            ")
+print("  ________   __  _______                                    ")
+print(" / ___/ _ | /  |/  / __/                                    ")
+print("/ (_ / __ |/ /|_/ / _/                                      ")
+print("\___/_/ |_/_/  /_/___/                                      ")
+print("                                                            ")
+print("   ___  ___  ___  ___                                       ")
+print("  |_  |/ _ \/ _ \/ _ \                                      ")
+print(" / __// // / // / // /                                      ")
+print("/____/\___/\___/\___/                                       ")
+
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
 
 def connect2server():
@@ -53,7 +79,7 @@ def guessSend():
             count+=1 ##Allow 25 loops without data before exiting loop
         print(data.decode)
     except ConnectionResetError or ConnectionAbortedError:
-        print("Your guess was not received before the game ended, sorry :-(...reconnect and try again")
+        print("Your guess was not received before the game ended, sorry loser :-(...reconnect and try again")
         return
     return data.decode()
 
@@ -69,7 +95,9 @@ def getvalidinput():
     not it prompts the user again, if it is in returns the valid response as a string for further use by
     the program."""
     try:
-        response = int(input("What number would you like to guess? (### from 1-100): "))
+        print("What number would you like to guess? (### from 1-100): ")
+        print("Actually, you know what? You're not going to get it right anyways so I'll just guess for you. 5. You're guessing 5.")
+        response = 5
     except: #If a user inputs a special character or letter
         print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
         response = int(input("What number would you like to guess? (### from 1-100): "))
@@ -90,4 +118,3 @@ connect2server()
 win_mess=guessSend()
 #checkWinner(win_mess)
 quitGuess()
-
