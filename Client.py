@@ -89,22 +89,22 @@ def checkWinner(message, guess):
 
     #Check first value to see if win or lose
     if results[0] == '1':
-        winOrLose='WIN!!!  '
+        winOrLose='WIN!!!'
     elif results[0] =='2':
-        winOrLose='LOSE:-(...  '
+        winOrLose='LOSE:-(...'
 
     #Store answer returned by server:
     answer = results[1]
 
     #Store winning answer sent by server:
-    winAns = results[3]
+    winAns = results[2]
 
     #Check if we had the closest answer but didn't win
     if (results[0]=='2') and (abs(int(guess)-int(answer)) == abs(int(winAns)-int(answer))):
-        preface = "You tied with the winner in having the closest guess, but the server received the winner's answer first...Guess faster next time!"
-    else: preface = "The results are in!!! "
+        preface = "You tied with the winner in having the closest guess, but the server received the winner's answer first...Guess faster next time!\n"
+    else: preface = "The results are in!!!"
 
-    print(preface, 'YOU ', winOrLose, "The answer was ", answer, "and the closest guess was ", winAns,'!')
+    print(preface, 'YOU', winOrLose, "The answer was", answer, "and the closest guess was", winAns+'!')
 
     return
 
