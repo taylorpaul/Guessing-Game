@@ -17,7 +17,7 @@ import socket
 import sys
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
-
+#----------------------------------------------------------------------------------
 def connect2server():
 
     if len(sys.argv) < 3:
@@ -32,7 +32,7 @@ def connect2server():
     sock.connect(server_address)
 
     return 0
-
+#----------------------------------------------------------------------------------
 def guessSend():
     guess=getvalidinput()
 
@@ -55,19 +55,20 @@ def guessSend():
     except ConnectionResetError or ConnectionAbortedError:
         print("Your guess was not received before the game ended, sorry :-(...reconnect and try again")
         return
-    return data.decode()
-
+    return data.decode(), guess
+#----------------------------------------------------------------------------------
 def quitGuess():
 
     print("Thanks for playing!!! Closing Connection!")
     sock.close()
     return
 
-##----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
 def getvalidinput():
     """Requests a user input for the guess, converts to an integer for checking value is between 1-100, if
     not it prompts the user again, if it is in returns the valid response as a string for further use by
     the program."""
+
     try:
         response = int(input("What number would you like to guess? (### from 1-100): "))
     except: #If a user inputs a special character or letter
@@ -80,14 +81,37 @@ def getvalidinput():
         response = int(input("What number would you like to guess? (### from 1-100): "))
 
     return str(response)
+#----------------------------------------------------------------------------------
+def checkWinner(message, guess):
 
+    #Split the returned server string into a list at commas:
+    results = message.split(',')
 
+    #Check first value to see if win or lose
+    if results[0] == '1':
+        winOrLose='WIN!!!  '
+    elif results[0] =='2':
+        winOrLose='LOSE:-(...  '
 
+    #Store answer returned by server:
+    answer = results[1]
+
+    #Store winning answer sent by server:
+    winAns = results[3]
+
+    #Check if we had the closest answer but didn't win
+    if (results[0]=='2') and (abs(int(guess)-int(answer)) == abs(int(winAns)-int(answer))):
+        preface = "You tied with the winner in having the closest guess, but the server received the winner's answer first...Guess faster next time!"
+    else: preface = "The results are in!!! "
+
+    print(preface, 'YOU ', winOrLose, "The answer was ", answer, "and the closest guess was ", winAns,'!')
+
+    return
 
 ## MAIN PROGRAM:
 
 connect2server()
-win_mess=guessSend()
-#checkWinner(win_mess)
+win_mess,guess=guessSend()
+checkWinner(win_mess, guess)
 quitGuess()
 

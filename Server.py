@@ -95,8 +95,7 @@ def sendWinner(win_id, answer):
     #
     for p in range(0,len(pSock)):
         if p ==win_id:
-            win_mess = '1,' + str(answer) # 1 for winner, along with the answer
-
+            win_mess = '1,' + str(answer) + str(pGuess[win_id].decode())# 1 for winner, along with the answer, winner guess
         else:
             win_mess = '2, ' + str(answer) +', ' + str(pGuess[win_id].decode()) #2 for loser, along with answer, winner guess
 
