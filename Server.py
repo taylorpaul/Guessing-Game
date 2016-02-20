@@ -17,7 +17,7 @@ import socket
 import sys
 import numpy as np
 import threading
-import queue
+
 
 #Establish Global Variables
 pSock = [] # List of Players: [(connection1, socket1),(connection2, socket2)...]
@@ -31,7 +31,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.settimeout(30)
 
 
-
+#----------------------------------------------------------------------------------
 def establishServer():
 
     ##Establish parameters for TCP/IP Connection
@@ -46,7 +46,7 @@ def establishServer():
     print("starting up on %s port %s" % server_address)
     sock.bind(server_address)
 
-
+#----------------------------------------------------------------------------------
 def pThread(pId, lock):
 
     try:
@@ -65,13 +65,14 @@ def pThread(pId, lock):
     finally:
         return 0
 
+#----------------------------------------------------------------------------------
 def closeConnections():
     for p in range(0,len(pSock)):
         pSock[p][0].close()
     print("The server is now starting a new game!!!")
     return 0
 
-
+#----------------------------------------------------------------------------------
 def checkAnswer(answer):
 
     global gameOn
@@ -85,24 +86,41 @@ def checkAnswer(answer):
 
     #Find winner that is closest!
     win_ans = min(winner)
-    win_id = winner.index(win_ans)
+
+    #Locate all indices for all winners (if len>1 there are ties)
+    win_ids = [i for i, x in enumerate(winner) if x == win_ans]
+
+
     lock.release()
-    sendWinner(win_id, answer)
+    sendWinner(win_ids, answer)
     return 0
 
-def sendWinner(win_id, answer):
+#----------------------------------------------------------------------------------
+def sendWinner(win_ids, answer):
 
-    #
+    #Get a count of winners:
+    win_count=len(win_ids)
+
+    #Create a string of winning answers:
+    win_ans =str(win_count) #add count of winners to front
+
+    #add each winning quess to end of answer list (will be 1 if no ties):
+    for winner in win_ids:
+        win_ans = win_ans + ', ' + str(pGuess[winner].decode())
+
+    #Combine into 1 string and send:
     for p in range(0,len(pSock)):
-        if p ==win_id:
-            win_mess = '1,' + str(answer) +', ' + str(pGuess[win_id].decode())# 1 for winner, along with the answer, winner guess
+        if p in win_ids:
+            win_mess = '1, ' +str(answer)+', '+ win_ans# 1 for winner, the answer, winning answers
+
         else:
-            win_mess = '2, ' + str(answer) +', ' + str(pGuess[win_id].decode()) #2 for loser, along with answer, winner guess
+            win_mess = '2, ' +str(answer)+', '+ win_ans #2 for loser, the answer, winning answers
 
         pSock[p][0].sendall(win_mess.encode())
 
     return 0
 
+#----------------------------------------------------------------------------------
 def startGame():
     global pId
     pId = 0
@@ -117,7 +135,7 @@ def startGame():
     while (gameOn):
 
         sock.listen(1)
-        print("waiting for a connection")
+        print("Waiting for a connection...")
 
         if pId < 25:
             try:
@@ -137,15 +155,15 @@ def startGame():
 
     return
 
-##Main Program:
+
+##Main Program:----------------------------------------------------------------------------------
 
 #Establish the Server:
 establishServer()
 
-#start the first game:
+#Keep the game going until someone closes the server:
 while True:
 
     startGame()
     closeConnections()
 
-#TODO Interpret winning/losing results at the client!

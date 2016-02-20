@@ -30,6 +30,7 @@ def connect2server():
     server_address = (server_name, server_port)
     print("connecting to %s port %s" % server_address)
     sock.connect(server_address)
+    print("\nWelcome to Guess that Number!\n")
 
     return 0
 #----------------------------------------------------------------------------------
@@ -49,9 +50,9 @@ def guessSend():
             data = sock.recv(16)
             if data:  ##Only print if receiving data
                 amount_received += len(data)
-                print("received %s" % data.decode())
+                #print("received %s" % data.decode()) #UNCOMMENT FOR TESTING PURPOSES
             count+=1 ##Allow 25 loops without data before exiting loop
-        print(data.decode)
+
     except ConnectionResetError or ConnectionAbortedError:
         print("Your guess was not received before the game ended, sorry :-(...reconnect and try again")
         return
@@ -96,15 +97,20 @@ def checkWinner(message, guess):
     #Store answer returned by server:
     answer = results[1]
 
-    #Store winning answer sent by server:
-    winAns = results[2]
+    #Store num of winners:
+    num_win=results[2]
 
-    #Check if we had the closest answer but didn't win
-    if (results[0]=='2') and (abs(int(guess)-int(answer)) == abs(int(winAns)-int(answer))):
-        preface = "You tied with the winner in having the closest guess, but the server received the winner's answer first...Guess faster next time!\n"
-    else: preface = "The results are in!!!"
+    #Store winning answer(s) sent by server:
+    winAns = results[3] #First winning result
 
-    print(preface, 'YOU', winOrLose, "The answer was", answer, "and the closest guess was", winAns+'!')
+    #Check if more than one winner, concatenate answers in single string:
+    if int(num_win)>1:
+        for x in range(4,len(results)):
+         winAns = winAns + ', ' + results[x]
+
+    preface = "\nThe results are in... we have " + num_win + " winner(s)!"
+
+    print(preface, 'YOU', winOrLose, "Here is the answer:", answer + ", and the winning guess(es):", winAns +'!\n')
 
     return
 
