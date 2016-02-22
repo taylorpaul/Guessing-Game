@@ -166,4 +166,3 @@ while True:
 
     startGame()
     closeConnections()
-
