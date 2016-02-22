@@ -40,7 +40,7 @@ print("   ___  ___  ___  ___                                       ")
 print("  |_  |/ _ \/ _ \/ _ \                                      ")
 print(" / __// // / // / // /                                      ")
 print("/____/\___/\___/\___/                                       ")
-
+#Graphic provided by Justin L. Downs
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
 #----------------------------------------------------------------------------------
