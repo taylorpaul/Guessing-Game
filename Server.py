@@ -28,10 +28,9 @@ gameOn = True
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.settimeout(30)
+#sock.settimeout(30)
 
-
-#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------
 def establishServer():
 
     ##Establish parameters for TCP/IP Connection
@@ -70,6 +69,7 @@ def closeConnections():
     for p in range(0,len(pSock)):
         pSock[p][0].close()
     print("The server is now starting a new game!!!")
+    startGame()
     return 0
 
 #----------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ def checkAnswer(answer):
     for p in range(0,len(pGuess)):
         winner.append(int(abs(answer-int(pGuess[p].decode()))))
 
-    #Find winner that is closest!
+    #Find the minimum guess difference to the answer:
     win_ans = min(winner)
 
     #Locate all indices for all winners (if len>1 there are ties)
@@ -93,7 +93,7 @@ def checkAnswer(answer):
 
     lock.release()
     sendWinner(win_ids, answer)
-    return 0
+    return closeConnections()
 
 #----------------------------------------------------------------------------------
 def sendWinner(win_ids, answer):
@@ -145,9 +145,11 @@ def startGame():
             pSock.append((connection, socket))
             t=threading.Thread(target=pThread, args=(pId, lock))
             t.start()
+
             if pId == 1:
-                time = threading.Timer(10.0, checkAnswer, args=answer)
+                time = threading.Timer(30.0, checkAnswer, args=answer)
                 time.start()
+
             pId += 1
 
         else:
@@ -161,8 +163,8 @@ def startGame():
 #Establish the Server:
 establishServer()
 
-#Keep the game going until someone closes the server:
-while True:
 
-    startGame()
-    closeConnections()
+#Initial Start, game will keep going until server closed:
+startGame()
+
+# TODO: Restart logic with closeConnections and starting a new game

@@ -15,6 +15,7 @@
 ##Following code imported from echo_s.py provided by Professor Geoffrey Xie
 import socket
 import sys
+import threading
 
 print(" _      ________   _________  __  _______                   ")
 print("| | /| / / __/ /  / ___/ __ \/  |/  / __/                   ")
@@ -40,7 +41,7 @@ print("   ___  ___  ___  ___                                       ")
 print("  |_  |/ _ \/ _ \/ _ \                                      ")
 print(" / __// // / // / // /                                      ")
 print("/____/\___/\___/\___/                                       ")
-#Graphic provided by Justin L. Downs
+#Graphic software for Atom IDE (figlet) introduced by Justin L. Downs
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
 #----------------------------------------------------------------------------------
@@ -96,18 +97,26 @@ def getvalidinput():
     not it prompts the user again, if it is in returns the valid response as a string for further use by
     the program."""
 
-    try:
-        print("What number would you like to guess? (### from 1-100): ")
-        print("Actually, you know what? You're not going to get it right anyways so I'll just guess for you. 5. You're guessing 5.")
-        response = 5
-    except: #If a user inputs a special character or letter
-        print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
-        response = int(input("What number would you like to guess? (### from 1-100): "))
+    notValidResponse = True
 
-    while (1 > response) or (response > 100):
+    while notValidResponse == True:
 
-        print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
-        response = int(input("What number would you like to guess? (### from 1-100): "))
+        try:
+            print("You have 10 seconds to guess or you will automatically quit!!!\n")
+            time = threading.Timer(10.0, quitGuess)
+            time.start()
+            response = int(input("\nWhat number would you like to guess? (### from 1-100): "))
+            notValidResponse = False
+            time.cancel()
+            if (1 > response) or (response > 100):
+                print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
+                notValidResponse = True #Set variable back to true to prompt user for guess once more
+
+        except: #If a user inputs a special character or letter prompt and allow loop to restart
+            print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
+
+
+
 
     return str(response)
 #----------------------------------------------------------------------------------

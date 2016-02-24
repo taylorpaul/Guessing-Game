@@ -1,0 +1,7 @@
+
+
+cd C:\Users\Taylor\GoogleDrive\NPS\04 Comp Comm and Networks\Project\guessing-game
+
+python Server.py localhost 1000
+
+python Client.py localhost 1000
