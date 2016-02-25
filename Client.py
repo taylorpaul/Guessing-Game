@@ -40,7 +40,7 @@ print("   ___  ___  ___  ___                                       ")
 print("  |_  |/ _ \/ _ \/ _ \                                      ")
 print(" / __// // / // / // /                                      ")
 print("/____/\___/\___/\___/                                       ")
-#Graphic provided by Justin L. Downs
+#Graphic software for Atom IDE (figlet) introduced by Justin L. Downs
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
 #----------------------------------------------------------------------------------
@@ -75,12 +75,15 @@ def guessSend():
         while (amount_received < amount_expected) and (count <= 25):
             data = sock.recv(16)
             if data:  ##Only print if receiving data
-                amount_received += len(data)
+                if data.decode() == "noFriends":
+                    print("Waiting on a second player to join...")
+                else:
+                    amount_received += len(data)
                 #print("received %s" % data.decode()) #UNCOMMENT FOR TESTING PURPOSES
             count+=1 ##Allow 25 loops without data before exiting loop
 
     except ConnectionResetError or ConnectionAbortedError:
-        print("Your guess was not received before the game ended, sorry loser :-(...reconnect and try again")
+        print("Your guess was not received before the game ended, sorry :-(...reconnect and try again")
         return
     return data.decode(), guess
 #----------------------------------------------------------------------------------
@@ -96,18 +99,21 @@ def getvalidinput():
     not it prompts the user again, if it is in returns the valid response as a string for further use by
     the program."""
 
-    try:
-        print("What number would you like to guess? (### from 1-100): ")
-        print("Actually, you know what? You're not going to get it right anyways so I'll just guess for you. 5. You're guessing 5.")
-        response = 5
-    except: #If a user inputs a special character or letter
-        print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
-        response = int(input("What number would you like to guess? (### from 1-100): "))
+    notValidResponse = True
 
-    while (1 > response) or (response > 100):
+    while notValidResponse == True:
 
-        print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
-        response = int(input("What number would you like to guess? (### from 1-100): "))
+        try:
+            response = int(input("\nWhat number would you like to guess? (### from 1-100): "))
+
+            if (1 > response) or (response > 100):
+                print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
+                notValidResponse = True #Set variable back to true to prompt user for guess once more
+
+            else: #Guess was good so exit the loop
+                notValidResponse = False
+        except: #If a user inputs a special character or letter prompt and allow loop to restart
+            print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
 
     return str(response)
 #----------------------------------------------------------------------------------
