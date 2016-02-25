@@ -76,12 +76,15 @@ def guessSend():
         while (amount_received < amount_expected) and (count <= 25):
             data = sock.recv(16)
             if data:  ##Only print if receiving data
-                amount_received += len(data)
+                if data.decode() == "noFriends":
+                    print("Waiting on a second player to join...")
+                else:
+                    amount_received += len(data)
                 #print("received %s" % data.decode()) #UNCOMMENT FOR TESTING PURPOSES
             count+=1 ##Allow 25 loops without data before exiting loop
 
     except ConnectionResetError or ConnectionAbortedError:
-        print("Your guess was not received before the game ended, sorry loser :-(...reconnect and try again")
+        print("Your guess was not received before the game ended, sorry :-(...reconnect and try again")
         return
     return data.decode(), guess
 #----------------------------------------------------------------------------------
@@ -102,21 +105,16 @@ def getvalidinput():
     while notValidResponse == True:
 
         try:
-            print("You have 10 seconds to guess or you will automatically quit!!!\n")
-            time = threading.Timer(10.0, quitGuess)
-            time.start()
             response = int(input("\nWhat number would you like to guess? (### from 1-100): "))
-            notValidResponse = False
-            time.cancel()
+
             if (1 > response) or (response > 100):
                 print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
                 notValidResponse = True #Set variable back to true to prompt user for guess once more
 
+            else: #Guess was good so exit the loop
+                notValidResponse = False
         except: #If a user inputs a special character or letter prompt and allow loop to restart
             print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
-
-
-
 
     return str(response)
 #----------------------------------------------------------------------------------

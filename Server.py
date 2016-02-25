@@ -28,7 +28,8 @@ gameOn = True
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#sock.settimeout(30)
+sock.settimeout(10)
+
 
 #----------------------------------------------------------------------
 def establishServer():
@@ -48,21 +49,20 @@ def establishServer():
 #----------------------------------------------------------------------------------
 def pThread(pId, lock):
 
+    print("client connected:",pSock[pId][1])
+    lock.acquire()
     try:
-        if gameOn: #Check to see if client connected after game closed
-            print("client connected:",pSock[pId][1])
-            #while (guessCount < 5):
-            lock.acquire()
-            pGuess.append(pSock[pId][0].recv(16)) #16 characters at a time
-            lock.release()
-            print("received %s" % pGuess[pId])
-        # if pGuess[pId]:
-        #     connection.sendall(message.encode())
-        #     if message == "1": #Answer was right so pick new randowm number:
-        #         answer=np.random.randint(1,100,1)
-        #waiting = False
-    finally:
-        return 0
+
+        response = pSock[pId][0].recv(16) #16 characters at a time
+
+    except OSError: #If a timout occurs before the user guesses
+        response = str(0).encode() #User guesses 0, therefore they cannot win
+
+    pGuess.append(response) #16 characters at a time
+    lock.release()
+    print("received %s" % pGuess[pId])
+
+    return 0
 
 #----------------------------------------------------------------------------------
 def closeConnections():
@@ -93,7 +93,11 @@ def checkAnswer(answer):
 
     lock.release()
     sendWinner(win_ids, answer)
-    return closeConnections()
+    closeConnections()
+    print("About to exit CheckAnswer()")
+    exit()
+    return
+
 
 #----------------------------------------------------------------------------------
 def sendWinner(win_ids, answer):
@@ -138,12 +142,20 @@ def startGame():
         print("Waiting for a connection...")
 
         if pId < 25:
+
             try:
                 connection, socket = sock.accept()
-            except OSError: #If timeout occurs exit while loop
-                break
+            except OSError: #If timeout occurs
+                if pId < 2: #Check to see if less than two players joined
+                    if pId == 1: #If only 1 player send waiting message
+                        waiting = "noFriends"
+                        pSock[0][0].sendall(waiting.encode())
+                    continue
+                else:
+                    break
             pSock.append((connection, socket))
             t=threading.Thread(target=pThread, args=(pId, lock))
+            t.daemon = True
             t.start()
 
             if pId == 1:
@@ -154,7 +166,6 @@ def startGame():
 
         else:
             gameOn = False
-
     return
 
 
@@ -163,8 +174,14 @@ def startGame():
 #Establish the Server:
 establishServer()
 
-
-#Initial Start, game will keep going until server closed:
-startGame()
-
-# TODO: Restart logic with closeConnections and starting a new game
+#Keep the game going until someone closes the server:
+while True:
+    print("Creating First Thread")
+    game = threading.Thread(startGame())
+    print("About to Start first game!")
+    game.start()
+    print("First Game Started")
+    game.join()
+    print("Next Game Started")
+#cd "GoogleDrive\NPS\04 Comp Comm and Networks\Project\guessing-game" && python server.py localhost 1000
+#cd "GoogleDrive\NPS\04 Comp Comm and Networks\Project\guessing-game" && python client.py localhost 1000
