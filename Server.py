@@ -18,20 +18,21 @@ import sys
 import numpy as np
 import threading
 
+ERRORVALUE=500
 
 #Establish Global Variables
 pSock = [] # List of Players: [(connection1, socket1),(connection2, socket2)...]
-pGuess = [] # List of ByteCode Guesses: [GuessP1,GuessP2...]
+pGuess = {} # Dictionary of ByteCode Guesses: {pId1: Guess1}
 pId = 0
 lock = threading.Lock()
-gameOn = True
+gameOn= True
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.settimeout(10)
+sock.settimeout(25)
 
 
-#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------
 def establishServer():
 
     ##Establish parameters for TCP/IP Connection
@@ -49,26 +50,30 @@ def establishServer():
 #----------------------------------------------------------------------------------
 def pThread(pId, lock):
 
+    global pGuess
     print("client connected:",pSock[pId][1])
-    lock.acquire()
-    try:
 
+    try:
         response = pSock[pId][0].recv(16) #16 characters at a time
 
-    except OSError: #If a timout occurs before the user guesses
-        response = str(0).encode() #User guesses 0, therefore they cannot win
+    except: #If a timout occurs before receiving guess, client handles errors
+        response = str(ERRORVALUE).encode() #Store ERRORVALUE, therefore they cannot win
 
-    pGuess.append(response) #16 characters at a time
+    lock.acquire()
+    pGuess[str(pId)] = response
     lock.release()
-    print("received %s" % pGuess[pId])
+    print("received %s" % pGuess[str(pId)])
 
     return 0
 
 #----------------------------------------------------------------------------------
 def closeConnections():
+
     for p in range(0,len(pSock)):
         pSock[p][0].close()
     print("The server is now starting a new game!!!")
+    startGame()
+
     return 0
 
 #----------------------------------------------------------------------------------
@@ -76,19 +81,20 @@ def checkAnswer(answer):
 
     global gameOn
     gameOn = False #End game (prevent further connections) once called
+    global pGuess
     winner=[]
     lock.acquire()
 
     #Create list of absolute differences between answer and guesses
-    for p in range(0,len(pGuess)):
-        winner.append(int(abs(answer-int(pGuess[p].decode()))))
 
-    #Find winner that is closest!
+    for p in range(0,(len(pGuess))):
+        winner.append(int(abs(answer-int(pGuess[str(p)].decode()))))
+
+    #Find the minimum guess difference to the answer:
     win_ans = min(winner)
 
     #Locate all indices for all winners (if len>1 there are ties)
     win_ids = [i for i, x in enumerate(winner) if x == win_ans]
-
 
     lock.release()
     sendWinner(win_ids, answer)
@@ -96,6 +102,7 @@ def checkAnswer(answer):
     print("About to exit CheckAnswer()")
     exit()
     return
+
 
 #----------------------------------------------------------------------------------
 def sendWinner(win_ids, answer):
@@ -108,7 +115,7 @@ def sendWinner(win_ids, answer):
 
     #add each winning quess to end of answer list (will be 1 if no ties):
     for winner in win_ids:
-        win_ans = win_ans + ', ' + str(pGuess[winner].decode())
+        win_ans = win_ans + ', ' + str(pGuess[str(winner)].decode())
 
     #Combine into 1 string and send:
     for p in range(0,len(pSock)):
@@ -124,6 +131,7 @@ def sendWinner(win_ids, answer):
 
 #----------------------------------------------------------------------------------
 def startGame():
+
     global pId
     pId = 0
     global gameOn
@@ -131,8 +139,9 @@ def startGame():
     global pSock
     pSock = []
     global pGuess
-    pGuess = []
+    pGuess = {}
     answer = np.random.randint(1,100,1) #Using Numpy Random Pick an integer b/t 1-100:
+
 
     while (gameOn):
 
@@ -144,24 +153,31 @@ def startGame():
             try:
                 connection, socket = sock.accept()
             except OSError: #If timeout occurs
+
                 if pId < 2: #Check to see if less than two players joined
                     if pId == 1: #If only 1 player send waiting message
                         waiting = "noFriends"
                         pSock[0][0].sendall(waiting.encode())
                     continue
-                else:
+
+                else: #Exit the while Loop
                     break
+
             pSock.append((connection, socket))
             t=threading.Thread(target=pThread, args=(pId, lock))
-            t.daemon = True
+            t.daemon = True #Allow main process to exit before threads are finished
             t.start()
+
             if pId == 1:
-                time = threading.Timer(10.0, checkAnswer, args=answer)
+                time = threading.Timer(30.0, checkAnswer, args=answer)
                 time.start()
+
             pId += 1
 
         else:
             gameOn = False
+
+    time.join() # Wait for checkanswer() to complete before starting a new game
     return
 
 
@@ -179,5 +195,5 @@ while True:
     print("First Game Started")
     game.join()
     print("Next Game Started")
-#cd "GoogleDrive\NPS\04 Comp Comm and Networks\Project\guessing-game" && python server.py localhost 1000
-#cd "GoogleDrive\NPS\04 Comp Comm and Networks\Project\guessing-game" && python client.py localhost 1000
+
+#   Start Server:  python server.py localhost 1000
