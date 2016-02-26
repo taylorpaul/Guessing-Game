@@ -6,44 +6,15 @@
 ## Operating Environment: Windows 10 Pro
 ## Compiler: PyCharm 5.0.4, Python 3.4.3
 ## Date: 29 Jan 16
-## Description: This file contains the source code for a cleint that will
+## Description: This file contains the source code for a client that will
 ## run "Guess that Number!" as a networking game.
 ##*********************************************************************
 
-
-## Starting Server TCP/IP Connection:
-##Following code imported from echo_s.py provided by Professor Geoffrey Xie
+##Imorts and Globals
 import socket
 import sys
-import threading
 
-print(" _      ________   _________  __  _______                   ")
-print("| | /| / / __/ /  / ___/ __ \/  |/  / __/                   ")
-print("| |/ |/ / _// /__/ /__/ /_/ / /|_/ / _/                     ")
-print("|__/|__/___/____/\___/\____/_/  /_/___/                     ")
-print("                                                            ")
-print(" __________                                                 ")
-print("/_  __/ __ \                                                ")
-print(" / / / /_/ /                                                ")
-print("/_/  \____/                                                 ")
-print("                                                            ")
-print("  _______  ___________________  _______                     ")
-print(" / ___/ / / / __/ __/ __/  _/ |/ / ___/                     ")
-print("/ (_ / /_/ / _/_\ \_\ \_/ //    / (_ /                      ")
-print("\___/\____/___/___/___/___/_/|_/\___/                       ")
-print("                                                            ")
-print("  ________   __  _______                                    ")
-print(" / ___/ _ | /  |/  / __/                                    ")
-print("/ (_ / __ |/ /|_/ / _/                                      ")
-print("\___/_/ |_/_/  /_/___/                                      ")
-print("                                                            ")
-print("   ___  ___  ___  ___                                       ")
-print("  |_  |/ _ \/ _ \/ _ \                                      ")
-print(" / __// // / // / // /                                      ")
-print("/____/\___/\___/\___/                                       ")
-#Graphic software for Atom IDE (figlet) introduced by Justin L. Downs
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
+#PUBLIC METHODS:
 #----------------------------------------------------------------------------------
 def connect2server():
 
@@ -57,12 +28,12 @@ def connect2server():
     server_address = (server_name, server_port)
     print("connecting to %s port %s" % server_address)
     sock.connect(server_address)
-    print("\nWelcome to Guess that Number!\n")
 
     return 0
+
+
 #----------------------------------------------------------------------------------
-def guessSend():
-    guess=getvalidinput()
+def guessSend(guess):
 
     print("sending %s" % guess)
     try:
@@ -84,9 +55,12 @@ def guessSend():
             count+=1 ##Allow 25 loops without data before exiting loop
 
     except ConnectionResetError or ConnectionAbortedError:
-        print("Your guess was not received before the game ended, sorry :-(...reconnect and try again")
-        return
-    return data.decode(), guess
+        print("Could not connect, the server is not available, please restart the program and try again:-(")
+        exit()
+
+    return data.decode()
+
+
 #----------------------------------------------------------------------------------
 def quitGuess():
 
@@ -105,7 +79,7 @@ def getvalidinput():
     while notValidResponse == True:
 
         try:
-            response = int(input("\nWhat number would you like to guess? (### from 1-100): "))
+            response = int(input("\n What number would you like to guess? (### from 1-100): "))
 
             if (1 > response) or (response > 100):
                 print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
@@ -117,6 +91,7 @@ def getvalidinput():
             print("\nInvalid guess, please guess an integer from 1-100 in format ###\n")
 
     return str(response)
+
 #----------------------------------------------------------------------------------
 def checkWinner(message, guess):
 
@@ -149,9 +124,43 @@ def checkWinner(message, guess):
 
     return
 
-## MAIN PROGRAM:
+## MAIN PROGRAM:----------------------------------------------------------------------
 
-connect2server()
-win_mess,guess=guessSend()
-checkWinner(win_mess, guess)
-quitGuess()
+#WELCOME SCREEN:
+
+print(" _      ________   _________  __  _______                   ")
+print("| | /| / / __/ /  / ___/ __ \/  |/  / __/                   ")
+print("| |/ |/ / _// /__/ /__/ /_/ / /|_/ / _/                     ")
+print("|__/|__/___/____/\___/\____/_/  /_/___/                     ")
+print("                                                            ")
+print(" __________                                                 ")
+print("/_  __/ __ \                                                ")
+print(" / / / /_/ /                                                ")
+print("/_/  \____/                                                 ")
+print("                                                            ")
+print("  _______  ___________________  _______                     ")
+print(" / ___/ / / / __/ __/ __/  _/ |/ / ___/                     ")
+print("/ (_ / /_/ / _/_\ \_\ \_/ //    / (_ /                      ")
+print("\___/\____/___/___/___/___/_/|_/\___/                       ")
+print("                                                            ")
+print("  ________   __  _______                                    ")
+print(" / ___/ _ | /  |/  / __/                                    ")
+print("/ (_ / __ |/ /|_/ / _/                                      ")
+print("\___/_/ |_/_/  /_/___/                                      ")
+print("                                                            ")
+print("   ___  ___  ___  ___                                       ")
+print("  |_  |/ _ \/ _ \/ _ \                                      ")
+print(" / __// // / // / // /                                      ")
+print("/____/\___/\___/\___/                                       ")
+#Graphic software for Atom IDE (figlet) introduced by Justin L. Downs
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# Create a TCP/IP socket
+
+#Actual Game:
+guess=getvalidinput()        #Get guess before trying to connect
+connect2server()             #Having Guess Connect to Server
+win_mess=guessSend(guess)    #Send the guess and receive response
+checkWinner(win_mess, guess) #Translate message to see if win or lose
+quitGuess()                  #Close Connection endgame
+
+#  Start Client:  python client.py localhost 1000
